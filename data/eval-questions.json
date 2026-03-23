@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What support exists for foster youth at University of Michigan?",
+    "expectMatch": true
+  },
+  {
+    "question": "How can I find financial aid or scholarships at UMich?",
+    "expectMatch": true
+  },
+  {
+    "question": "What should I do if I miss an application deadline?",
+    "expectMatch": true
+  },
+  {
+    "question": "Who should I contact for housing questions at UMich?",
+    "expectMatch": true
+  },
+  {
+    "question": "What are the current NCAA football rankings?",
+    "expectMatch": false
+  }
+]
