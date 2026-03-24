@@ -7,11 +7,6 @@ const requestSchema = z.object({
   message: z.string().min(1)
 });
 
-const responseSchema = z.object({
-  answer: z.string(),
-  usedContext: z.boolean()
-});
-
 const MIN_SCORE = 0.2;
 const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 
@@ -23,23 +18,16 @@ function toPlainSummary(context: string): string {
 }
 
 function buildFallbackAnswer(
-  message: string,
   matches: Array<{ text: string }>
 ): string {
-  const snippets = matches
+  const snippet = matches
     .map((m) => m.text.trim())
     .filter(Boolean)
-    .slice(0, 2)
+    .slice(0, 1)
     .map((text) => toPlainSummary(text))
-    .join("\n\n");
+    .join("\n");
 
-  return [
-    `Based on the UMich files, here is the best available answer to "${message}":`,
-    "",
-    snippets || "I do not know from the current UMich files I have.",
-    "",
-    "If you want, I can help with a more specific follow-up question."
-  ].join("\n");
+  return snippet || "I do not know from the current UMich files I have.";
 }
 
 function getClient(): OpenAI {
@@ -66,14 +54,13 @@ export async function POST(req: Request) {
 
     const context = buildContext(matches);
     const retrievalMode = process.env.RETRIEVAL_MODE || "keyword";
-    let answer = buildFallbackAnswer(message, matches);
+    let answer = buildFallbackAnswer(matches);
 
     if (retrievalMode === "embedding") {
       const client = getClient();
       const completion = await client.chat.completions.create({
         model: CHAT_MODEL,
         temperature: 0.1,
-        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           {
@@ -83,10 +70,9 @@ export async function POST(req: Request) {
         ]
       });
 
-      const raw = completion.choices[0]?.message?.content || "{}";
-      const parsed = responseSchema.safeParse(JSON.parse(raw));
-      if (parsed.success && parsed.data.usedContext) {
-        answer = parsed.data.answer;
+      const modelAnswer = completion.choices[0]?.message?.content?.trim();
+      if (modelAnswer) {
+        answer = modelAnswer;
       }
     }
 
