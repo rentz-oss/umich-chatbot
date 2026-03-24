@@ -22,6 +22,26 @@ function toPlainSummary(context: string): string {
   return `${context.slice(0, maxChars)}\n\n[Content shortened for readability.]`;
 }
 
+function buildFallbackAnswer(
+  message: string,
+  matches: Array<{ text: string }>
+): string {
+  const snippets = matches
+    .map((m) => m.text.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((text) => toPlainSummary(text))
+    .join("\n\n");
+
+  return [
+    `Based on the UMich files, here is the best available answer to "${message}":`,
+    "",
+    snippets || "I do not know from the current UMich files I have.",
+    "",
+    "If you want, I can help with a more specific follow-up question."
+  ].join("\n");
+}
+
 function getClient(): OpenAI {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set.");
@@ -46,13 +66,7 @@ export async function POST(req: Request) {
 
     const context = buildContext(matches);
     const retrievalMode = process.env.RETRIEVAL_MODE || "keyword";
-    let answer = [
-      "Here is what I found in the current UMich files:",
-      "",
-      toPlainSummary(context),
-      "",
-      "If this does not fully answer your question, contact a University of Michigan advisor or support office."
-    ].join("\n");
+    let answer = buildFallbackAnswer(message, matches);
 
     if (retrievalMode === "embedding") {
       const client = getClient();
