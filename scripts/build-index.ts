@@ -23,7 +23,10 @@ async function ensureKnowledgeDir(dirPath: string): Promise<void> {
 }
 
 async function main() {
-  const retrievalMode = process.env.RETRIEVAL_MODE || "keyword";
+  const requestedMode = process.env.RETRIEVAL_MODE || "keyword";
+  const hasApiKey = Boolean(process.env.OPENAI_API_KEY);
+  const retrievalMode =
+    requestedMode === "embedding" && !hasApiKey ? "keyword" : requestedMode;
   const knowledgeDir = resolveKnowledgeDir();
   await ensureKnowledgeDir(knowledgeDir);
 
@@ -48,6 +51,12 @@ async function main() {
     indexChunks = embeddedChunks;
     embeddingModel = getEmbedModelName();
     dimensions = embeddedChunks[0]?.embedding?.length || 0;
+  }
+
+  if (requestedMode === "embedding" && retrievalMode === "keyword") {
+    console.warn(
+      "OPENAI_API_KEY was not available during build, so index was created in keyword mode."
+    );
   }
 
   await saveIndex({
