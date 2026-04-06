@@ -7,11 +7,22 @@ type ChatMessage = {
   text: string;
 };
 
+const UI_COPY = {
+  title: "Higher Ed and Financial Aid Resource Guide for Foster Youth",
+  inputPlaceholder: "Type your question…",
+  send: "Send",
+  thinking: "Thinking…",
+  disclaimer:
+    "This tool does not provide legal advice. Please verify outputs and consult official sources when making important decisions.",
+  starterMessage:
+    "Hi! Ask me anything about applying to higher education programs and scholarships designed for foster care youth in Michigan."
+};
+
 export default function HomePage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Ask me anything about University of Michigan from the files loaded into this chatbot. I only answer from those files."
+      text: UI_COPY.starterMessage
     }
   ]);
   const [input, setInput] = useState("");
@@ -62,32 +73,41 @@ export default function HomePage() {
   }
 
   return (
-    <main>
-      <h1>UMich Foster Youth Chatbot (Files-Only)</h1>
-      <p>
-        This pilot only uses your local files. If the answer is not found in those files, it will
-        say it does not know.
-      </p>
+    <main className="page">
+      <header className="header">
+        <div className="brand">
+          <div className="logo" aria-hidden="true" />
+          <div className="brand-text">
+            <h1>{UI_COPY.title}</h1>
+          </div>
+        </div>
+      </header>
 
-      <section className="chat-shell">
-        <div className="messages">
+      <section className="chat-shell" aria-label="Chat">
+        <div className="messages" role="log" aria-live="polite">
           {messages.map((msg, idx) => (
             <article key={`${msg.role}-${idx}`} className={`bubble ${msg.role}`}>
-              <div>{msg.text}</div>
+              <div className="bubble-text">{msg.text}</div>
             </article>
           ))}
         </div>
 
-        <form onSubmit={onSubmit}>
+        <form className="composer" onSubmit={onSubmit}>
+          <label className="sr-only" htmlFor="chat-input">
+            Message
+          </label>
           <textarea
+            id="chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a UMich question..."
+            placeholder={UI_COPY.inputPlaceholder}
           />
           <button type="submit" disabled={loading}>
-            {loading ? "Thinking..." : "Send"}
+            {loading ? UI_COPY.thinking : UI_COPY.send}
           </button>
         </form>
+
+        <footer className="footer-hint">{UI_COPY.disclaimer}</footer>
       </section>
     </main>
   );

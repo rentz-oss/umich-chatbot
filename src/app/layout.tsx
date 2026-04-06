@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Files-only chatbot pilot for University of Michigan support content."
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
